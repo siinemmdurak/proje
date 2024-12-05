@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kamer Vakfı</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Sharp:opsz,wght,FILL,GRAD@48,400,0,0" />
+  <link rel="stylesheet" href="verigirisi.css">
+  <script src="verigirisi.js" defer></script> <!-- JavaScript dosyasını defer ile yükle -->
+</head>
+<body>
+  <div class="container">
+    <aside>
+      <div class="top">
+        <div class="logo">
+          <h2><span class="danger">KAMER Vakfı</span></h2>
+        </div>
+        <div class="close" id="close_btn">
+          <span class="material-symbols-sharp">close</span>
+        </div>
+      </div>
+      <div class="sidebar">
+        <ul>
+          <li>
+            <a href="verigirisi.html">
+              <span class="material-symbols-sharp">grid_view</span>
+              <h3>Veri Girişi</h3>
+            </a>
+          </li>
+          <li>
+            <a href="yillar.html">
+              <span class="material-symbols-sharp">person</span>
+              <h3>Yıllara Göre Analiz</h3>
+            </a>
+          </li>
+          <li>
+            <a href="sehirler.html">
+              <span class="material-symbols-sharp">show_chart</span>
+              <h3>Şehirlere Göre Analiz</h3>
+            </a>
+          </li>
+          <li>
+            <a href="siginak.html">
+              <span class="material-symbols-sharp">mail</span>
+              <h3>Sığınak Doluluk Haritası</h3>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </aside>
+    <main id="content-area">
+      <h1>Veri Girişi</h1>
+      <div class="upload-container">
+        <!-- Form etiketi düzenlendi -->
+        <form id="upload-form" action="/verigirisi/upload" method="POST" enctype="multipart/form-data">
+          <input type="hidden" name="hedefTablo" value="veriler" /> 
+          <label for="file-upload" class="upload-label">
+            <span class="material-symbols-sharp">upload</span>
+            Dosya Yükle
+          </label>
+          <input type="file" id="file-upload" name="file" class="file-input" accept=".xls, .xlsx" onchange="document.getElementById('upload-form').submit();" />
+        </form>
+        <p class="instructions">Lütfen yalnızca Excel formatındaki (.xls veya .xlsx) dosyaları yükleyin. Yükleme tamamlandığında dosya adını ve tarihini aşağıda görebilirsiniz.</p>
+        <p class="warning"><strong>Not:</strong> Yüklediğiniz dosyaların doğruluğundan emin olun. Yanlış veriler analizinizi etkileyebilir.</p>
+      </div>
+      <div class="uploaded-files">
+        <h2>Yüklenen Dosyalar</h2>
+        <ul id="file-list"></ul>
+      </div>
+    </main>
+  </div>
+</body>
+</html>
