@@ -25,7 +25,7 @@
               <ul>
                   <li><a href="verigirisi.html"><span class="material-symbols-sharp">grid_view</span><h3>Veri Girişi </h3></a></li>
                   <li><a href="yillar.html"><span class="material-symbols-sharp">person</span><h3>Yıllara Göre Analiz</h3></a></li>
-                  <li><a href="sehirle.html"><span class="material-symbols-sharp">show_chart</span><h3>Şehirlere Göre Analiz</h3></a></li>
+                  <li><a href="sehirler.html"><span class="material-symbols-sharp">show_chart</span><h3>Şehirlere Göre Analiz</h3></a></li>
                   <li><a href="siginak.html"><span class="material-symbols-sharp">mail</span><h3>Sığınak Doluluk Haritası</h3></a></li>
               </ul>
           </div>
@@ -35,76 +35,136 @@
             <h1>Yıllara Göre Analiz</h1>
             <div class="stats">
                 <div class="stat-box">
-                    <h3>En çok kadın cinayeti olan yıl ve ay</h3>
-                    <p><span class="year">2021</span> <span class="month">Şubat</span></p>
+                    <h3>En çok kadın cinayeti olan şehir</h3>
+                    <p><span class="year"></span> <span class="month"></span></p>
                 </div>
                 <div class="stat-box">
-                    <h3>En çok kadın şiddeti olan yıl ve ay</h3>
-                    <p><span class="year">2022</span> <span class="month">Haziran</span></p>
+                    <h3>En çok kadın şiddeti olan şehir</h3>
+                    <p><span class="year"></span> <span class="month"></span></p>
                 </div>
                 <div class="stat-box">
-                    <h3>En çok boşanma oranı olan yıl</h3>
-                    <p><span class="year">2024</span> <span class="month">Mart</span></p>
+                    <h3>En çok boşanma oranı olan şehir</h3>
+                    <p><span class="year"></span> <span class="month"></span></p>
                 </div>
             </div>
 
             <div class="graph-section">
                 <div class="bar-chart">
-                    <h3>Yılların Oranları</h3>
-                    <select id="year-select" onchange="updateChart()">
-                        <option value="2024">2024</option>
-                        <option value="2023">2023</option>
-                        <option value="2022">2022</option>
-                    </select>
-                    <div id="chart_div" style="width: 100%; height: 500px;"></div>
+                    <h3>Şehirlere Göre Yıllık Veriler</h3>
+                    <label for="city-select">Şehir Seçiniz: </label>
+<select id="city-select" onchange="updateCityChart()">
+    <option value="">Şehir Seç</option>
+</select>
+
+                    <div id="city_chart_div" style="width: 100%; height: 500px;"></div>
                 </div>
             </div>
+            
         </div>
     </div>
 
     <script>
         // Google Charts yükleniyor
         google.charts.load('current', { packages: ['corechart'] });
-        google.charts.setOnLoadCallback(updateChart);
+google.charts.setOnLoadCallback(loadCities);
 
-        const yearSelect = document.getElementById('year-select');
+const citySelect = document.getElementById('city-select');
 
-        async function updateChart() {
-            const year = yearSelect.value;
-            try {
-                const response = await fetch(`http://localhost:3000/getCityData?year=${year}`);
-                if (response.ok) {
-                    const result = await response.json();
-                    const { cityData } = result;
+async function loadStats() {
+    try {
+        // En çok kadın cinayeti olan şehir
+        const res1 = await fetch('http://localhost:3000/api/mostViolentCity');
+        const violentCity = await res1.json();
+        document.querySelector('.stat-box:nth-child(1) p').innerHTML = violentCity.sehir_adi;
 
-                    if (!cityData || cityData.length === 0) {
-                        alert('Veri bulunamadı.');
-                        return;
-                    }
+        // En çok kadın şiddeti olan şehir
+        const res2 = await fetch('http://localhost:3000/api/mostAbuseCity');
+        const abuseCity = await res2.json();
+        document.querySelector('.stat-box:nth-child(2) p').innerHTML = abuseCity.sehir_adi;
 
-                    const chartData = google.visualization.arrayToDataTable([
-                        ['Şehir', 'Kadın Cinayetleri', 'Şiddet Vakaları', 'Boşanma Oranı'],
-                        ...cityData.map(item => [item.il_ad, item.kadin_cinayeti, item.siddet_vaka, item.bosanma_oran])
-                    ]);
+        // En çok boşanma oranı olan şehir
+        const res3 = await fetch('http://localhost:3000/api/mostDivorceCity');
+        const divorceCity = await res3.json();
+        document.querySelector('.stat-box:nth-child(3) p').innerHTML = divorceCity.sehir_adi;
 
-                    const options = {
-                        title: 'Şehirlere Göre Veriler',
-                        hAxis: { title: 'Şehirler' },
-                        vAxis: { title: 'Oranlar' },
-                        legend: { position: 'top' },
-                        colors: ['#b200b6', '#41f1b6', '#ff4edc'],
-                        isStacked: true
-                    };
+    } catch (error) {
+        console.error('Veri yüklenirken hata oluştu:', error.message);
+    }
+}
 
-                    const chart = new google.visualization.ColumnChart(document.getElementById('chart_div'));
-                    chart.draw(chartData, options);
-                } else {
-                    alert('Veri alınamadı.');
-                }
-            } catch (error) {
-                console.error('Hata:', error);
-            }
+// Şehir listesini yükle
+async function loadCities() {
+    try {
+        const response = await fetch('http://localhost:3000/api/getCities');
+        if (response.ok) {
+            const cities = await response.json();
+
+            // Şehirleri dropdown içine ekle
+            cities.forEach(city => {
+                const option = document.createElement('option');
+                option.value = city.sehir_adi; // Değer olarak şehir adı kullanılıyor
+                option.textContent = city.sehir_adi;
+                citySelect.appendChild(option);
+            });
+        } else {
+            alert('Şehir listesi yüklenemedi.');
         }
+    } catch (error) {
+        console.error('Hata:', error.message);
+    }
+}
+
+// Grafik güncelleme
+async function updateCityChart() {
+    const cityName = citySelect.value; // Şehir adı alınıyor
+    if (!cityName) return;
+
+    try {
+        const response = await fetch(`http://localhost:3000/api/getCityYearlyData?cityName=${cityName}`);
+        if (response.ok) {
+            const result = await response.json();
+            const { data } = result;
+
+            if (!data || data.length === 0) {
+                alert('Veri bulunamadı.');
+                return;
+            }
+
+            // Veri türü dönüşümünü garanti altına al
+            const chartData = google.visualization.arrayToDataTable([
+    ['Yıl', 'Kadın Cinayetleri', 'Şiddet Vakaları', 'Boşanma Oranı'],
+    ...data.map(item => [
+        String(item.yil),                   // Yıl'ı String olarak al
+        Number(item.kadin_cinayeti) || 0,  // Null veya undefined'a karşı 0 kullan
+        Number(item.siddet_vaka) || 0,     // Null veya undefined'a karşı 0 kullan
+        Number(item.bosanma_oran) || 0     // Null veya undefined'a karşı 0 kullan
+    ])
+]);
+
+const options = {
+    title: 'Seçilen Şehirde Yıllara Göre Veriler',
+    hAxis: { title: 'Yıllar' },
+    vAxis: { title: 'Oranlar' },
+    legend: { position: 'top' },
+    isStacked: false // Yan yana sütunlar için stacked özelliğini kapat
+};
+
+const chart = new google.visualization.ColumnChart(document.getElementById('city_chart_div'));
+chart.draw(chartData, options);
+
+        } else {
+            alert('Veri alınamadı.');
+        }
+    } catch (error) {
+        console.error('Hata:', error.message);
+    }
+}
+
+// Sayfa yüklendiğinde şehir listesini yükle
+window.onload = () => {
+    loadStats();
+    loadCities(); // Mevcut şehir dropdown için olan fonksiyon
+};
     </script>
 </body>
 </html>
