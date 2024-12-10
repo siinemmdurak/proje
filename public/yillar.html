@@ -24,8 +24,8 @@
          <div class="sidebar">
               <ul>
                   <li><a href="verigirisi.html"><span class="material-symbols-sharp">grid_view</span><h3>Veri Girişi</h3></a></li>
-                  <li><a href="yillar.html" class="active"><span class="material-symbols-sharp">person</span><h3>Yıllara Göre Analiz</h3></a></li>
-                  <li><a href="sehirle.html"><span class="material-symbols-sharp">show_chart</span><h3>Şehirlere Göre Analiz</h3></a></li>
+                  <li><a href="yillar.html"><span class="material-symbols-sharp">person</span><h3>Yıllara Göre Analiz</h3></a></li>
+                  <li><a href="sehirler.html"><span class="material-symbols-sharp">show_chart</span><h3>Şehirlere Göre Analiz</h3></a></li>
                   <li><a href="siginak.html"><span class="material-symbols-sharp">mail</span><h3>Sığınak Doluluk Haritası</h3></a></li>
               </ul>
           </div>
@@ -64,7 +64,11 @@
    </div>
 
    <script>
-       // Google Charts yükleniyor
+       const monthNames = [
+           "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
+           "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"
+       ];
+
        google.charts.load('current', { packages: ['corechart'] });
        google.charts.setOnLoadCallback(updateChart);
 
@@ -76,24 +80,28 @@
                if (response.ok) {
                    const stats = await response.json();
 
-                   // Kadın cinayeti
-                   document.querySelector('.stat-box:nth-child(1) .year').textContent = stats.kadin_cinayeti.yil;
-                   document.querySelector('.stat-box:nth-child(1) .month').textContent = stats.kadin_cinayeti.ay;
-
-                   // Kadın şiddeti
-                   document.querySelector('.stat-box:nth-child(2) .year').textContent = stats.siddet_vaka.yil;
-                   document.querySelector('.stat-box:nth-child(2) .month').textContent = stats.siddet_vaka.ay;
-
-                   // Boşanma oranı
-                   document.querySelector('.stat-box:nth-child(3) .year').textContent = stats.bosanma_oran.yil;
-                   document.querySelector('.stat-box:nth-child(3) .month').textContent = stats.bosanma_oran.ay;
-               } else {
-                   console.error('Stat-box verileri alınamadı.');
-               }
-           } catch (error) {
-               console.error('Stat-box güncelleme hatası:', error);
-           }
-       }
+                   if (stats.kadin_cinayeti) {
+                   document.querySelector('.stat-box:nth-child(1) .year').textContent = stats.kadin_cinayeti.yil || 'Bilinmiyor';
+                   document.querySelector('.stat-box:nth-child(1) .month').textContent = stats.kadin_cinayeti.ay 
+                       ? monthNames[stats.kadin_cinayeti.ay - 1] : 'Bilinmiyor';
+                   }
+                   if (stats.siddet_vaka) {
+                   document.querySelector('.stat-box:nth-child(2) .year').textContent = stats.siddet_vaka.yil || 'Bilinmiyor';
+                   document.querySelector('.stat-box:nth-child(2) .month').textContent = stats.siddet_vaka.ay 
+                       ? monthNames[stats.siddet_vaka.ay - 1] : 'Bilinmiyor';
+                   }
+                   if (stats.bosanma_oran) {
+                   document.querySelector('.stat-box:nth-child(3) .year').textContent = stats.bosanma_oran.yil || 'Bilinmiyor';
+                   document.querySelector('.stat-box:nth-child(3) .month').textContent = stats.bosanma_oran.ay 
+                       ? monthNames[stats.bosanma_oran.ay - 1] : 'Bilinmiyor';
+                   }
+                } else {
+            console.error('Veri çekme hatası:', response.statusText);
+        }
+    } catch (error) {
+        console.error('Stat-box güncelleme hatası:', error);
+    }
+}
 
        async function updateChart() {
            const year = yearSelect.value;
@@ -110,7 +118,12 @@
 
                    const chartData = google.visualization.arrayToDataTable([
                        ['Ay', 'Kadın Cinayetleri', 'Şiddet Vakaları', 'Boşanma Oranı'],
-                       ...yearData.map(item => [item.ay, item.kadin_cinayeti, item.siddet_vaka, item.bosanma_oran])
+                       ...yearData.map(item => [
+                           monthNames[item.ay - 1], // Ay isimleri burada dönüştürülüyor
+                           Number(item.kadin_cinayet) || 0,
+                           Number(item.siddet_vaka) || 0,
+                           Number(item.bosanma_oran) || 0
+                       ])
                    ]);
 
                    const options = {
@@ -123,15 +136,12 @@
 
                    const chart = new google.visualization.ColumnChart(document.getElementById('chart_div'));
                    chart.draw(chartData, options);
-               } else {
-                   alert('Grafik verileri alınamadı.');
                }
            } catch (error) {
                console.error('Grafik güncelleme hatası:', error);
            }
        }
 
-       // Sayfa yüklendiğinde stat-box'ları ve grafiği güncelle
        window.onload = () => {
            updateStats();
            updateChart();
